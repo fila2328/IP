@@ -173,6 +173,8 @@ function setupStudentInterface() {
     // Show student menu items
     const studentMenuItems = document.querySelectorAll('.menu-item:not(.admin-menu-item)');
     studentMenuItems.forEach(item => item.style.display = 'flex');
+
+    initializeStudentSearch();
 }
 
 // Update dashboard statistics with realistic values
@@ -1803,6 +1805,280 @@ async function handleDeleteStudent(studentId) {
     loadAdminFeedbacks();
 
     showNotification('Student removed successfully', 'success');
+}
+
+// ===== Student global search =====
+let searchDebounceTimer = null;
+
+function initializeStudentSearch() {
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchDropdown = document.getElementById('searchResultsDropdown');
+    if (!searchInput || !searchDropdown) return;
+
+    syncSearchDataFromAPI();
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            const query = searchInput.value.trim();
+            if (!query) {
+                hideSearchResults();
+                const activePage = sessionStorage.getItem('activePage');
+                if (activePage === 'feedback') {
+                    loadAllFeedbacks();
+                }
+                return;
+            }
+            performGlobalSearch(query);
+        }, 200);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim()) {
+            performGlobalSearch(searchInput.value.trim());
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-bar-wrapper')) {
+            hideSearchResults();
+        }
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideSearchResults();
+            searchInput.blur();
+        }
+    });
+}
+
+function hideSearchResults() {
+    const searchDropdown = document.getElementById('searchResultsDropdown');
+    if (searchDropdown) {
+        searchDropdown.classList.add('hidden');
+        searchDropdown.innerHTML = '';
+    }
+}
+
+async function syncSearchDataFromAPI() {
+    try {
+        const feedbacks = await apiGet('/api/feedbacks');
+        if (Array.isArray(feedbacks)) {
+            localStorage.setItem('allFeedbacks', JSON.stringify(feedbacks));
+        }
+    } catch (error) {
+        // Use local data when API is unavailable
+    }
+
+    try {
+        const students = await apiGet('/api/students');
+        if (Array.isArray(students)) {
+            const users = JSON.parse(localStorage.getItem('schoolUsers')) || [];
+            students.forEach((student) => {
+                const safeStudent = { ...student };
+                delete safeStudent.password;
+                const index = users.findIndex((u) => u.id === safeStudent.id);
+                if (index >= 0) {
+                    users[index] = { ...users[index], ...safeStudent };
+                } else {
+                    users.push(safeStudent);
+                }
+            });
+            localStorage.setItem('schoolUsers', JSON.stringify(users));
+        }
+    } catch (error) {
+        // Use local data when API is unavailable
+    }
+}
+
+function matchesSearchQuery(text, query) {
+    if (!text || !query) return false;
+    return String(text).toLowerCase().includes(query.toLowerCase());
+}
+
+function getAggregatedFeedbacks() {
+    const byId = new Map();
+    const stored = JSON.parse(localStorage.getItem('allFeedbacks')) || [];
+    stored.forEach((f) => byId.set(f.id, f));
+
+    const users = JSON.parse(localStorage.getItem('schoolUsers')) || [];
+    users.forEach((user) => {
+        (user.feedbacks || []).forEach((f) => {
+            if (!byId.has(f.id)) {
+                byId.set(f.id, f);
+            }
+        });
+    });
+
+    return Array.from(byId.values());
+}
+
+function getStudentsFromStorage() {
+    const users = JSON.parse(localStorage.getItem('schoolUsers')) || [];
+    return users.filter((u) => u.role !== 'admin');
+}
+
+function getSearchableTeachers() {
+    const userDepartment = formatDepartment(currentUser.department);
+    return teachers.filter((teacher) => teacher.department === userDepartment);
+}
+
+function performGlobalSearch(query) {
+    const searchDropdown = document.getElementById('searchResultsDropdown');
+    if (!searchDropdown) return;
+
+    const matchedTeachers = getSearchableTeachers().filter((teacher) =>
+        matchesSearchQuery(teacher.name, query) ||
+        matchesSearchQuery(teacher.subject, query) ||
+        matchesSearchQuery(teacher.department, query)
+    ).slice(0, 5);
+
+    const matchedFeedbacks = getAggregatedFeedbacks().filter((feedback) =>
+        matchesSearchQuery(feedback.teacherName, query) ||
+        matchesSearchQuery(feedback.userName, query) ||
+        matchesSearchQuery(feedback.comments, query) ||
+        matchesSearchQuery(feedback.teacherSubject, query)
+    ).slice(0, 5);
+
+    const matchedStudents = getStudentsFromStorage().filter((student) =>
+        matchesSearchQuery(student.name, query) ||
+        matchesSearchQuery(student.studentId, query) ||
+        matchesSearchQuery(student.email, query)
+    ).slice(0, 5);
+
+    renderSearchResults({
+        teachers: matchedTeachers,
+        feedbacks: matchedFeedbacks,
+        students: matchedStudents
+    }, query);
+
+    searchDropdown.classList.remove('hidden');
+}
+
+function renderSearchResults(results, query) {
+    const searchDropdown = document.getElementById('searchResultsDropdown');
+    if (!searchDropdown) return;
+
+    const { teachers: matchedTeachers, feedbacks: matchedFeedbacks, students: matchedStudents } = results;
+    const hasResults = matchedTeachers.length || matchedFeedbacks.length || matchedStudents.length;
+
+    if (!hasResults) {
+        searchDropdown.innerHTML = `<div class="search-results-empty">No results for "${escapeHtml(query)}"</div>`;
+        return;
+    }
+
+    let html = '';
+
+    if (matchedTeachers.length) {
+        html += `<div class="search-results-group"><div class="search-results-group-title">Teachers</div>`;
+        matchedTeachers.forEach((teacher) => {
+            html += `
+                <div class="search-result-item" tabindex="0" data-type="teacher" data-id="${teacher.id}">
+                    <div class="search-result-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">${escapeHtml(teacher.name)}</div>
+                        <div class="search-result-subtitle">${escapeHtml(teacher.subject)} · ${escapeHtml(teacher.department)}</div>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+    }
+
+    if (matchedFeedbacks.length) {
+        html += `<div class="search-results-group"><div class="search-results-group-title">Feedbacks</div>`;
+        matchedFeedbacks.forEach((feedback) => {
+            const preview = feedback.comments
+                ? escapeHtml(feedback.comments).slice(0, 60) + (feedback.comments.length > 60 ? '…' : '')
+                : 'No comment';
+            html += `
+                <div class="search-result-item" tabindex="0" data-type="feedback" data-id="${feedback.id}">
+                    <div class="search-result-icon feedback-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">${escapeHtml(feedback.teacherName)} — ${feedback.rating}/5</div>
+                        <div class="search-result-subtitle">By ${escapeHtml(feedback.userName)}: ${preview}</div>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+    }
+
+    if (matchedStudents.length) {
+        html += `<div class="search-results-group"><div class="search-results-group-title">Students</div>`;
+        matchedStudents.forEach((student) => {
+            const feedbackCount = (student.feedbacks || []).length;
+            html += `
+                <div class="search-result-item" tabindex="0" data-type="student" data-id="${student.id}">
+                    <div class="search-result-icon student-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="search-result-content">
+                        <div class="search-result-title">${escapeHtml(student.name)}</div>
+                        <div class="search-result-subtitle">${escapeHtml(student.studentId || student.email)} · ${feedbackCount} feedback${feedbackCount !== 1 ? 's' : ''}</div>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+    }
+
+    searchDropdown.innerHTML = html;
+
+    searchDropdown.querySelectorAll('.search-result-item').forEach((item) => {
+        const handleSelect = () => {
+            const type = item.dataset.type;
+            const id = item.dataset.id;
+            handleSearchResultSelect(type, id);
+        };
+        item.addEventListener('click', handleSelect);
+        item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSelect();
+        });
+    });
+}
+
+function handleSearchResultSelect(type, id) {
+    const searchInput = document.getElementById('globalSearchInput');
+    hideSearchResults();
+    if (searchInput) searchInput.value = '';
+
+    if (type === 'teacher') {
+        const teacher = teachers.find((t) => String(t.id) === String(id));
+        if (teacher) {
+            switchPage('teachers');
+            setTimeout(() => openTeacherModal(teacher), 150);
+        }
+    } else if (type === 'feedback') {
+        switchPage('feedback');
+        setTimeout(() => highlightFeedbackCard(id), 150);
+    } else if (type === 'student') {
+        switchPage('feedback');
+        setTimeout(() => filterFeedbacksByStudent(id), 150);
+    }
+}
+
+function highlightFeedbackCard(feedbackId) {
+    document.querySelectorAll('.feedback-card').forEach((card) => {
+        card.style.display = '';
+    });
+
+    const card = document.querySelector(`.feedback-card[data-feedback-id="${feedbackId}"]`);
+    if (card) {
+        card.classList.add('search-highlight');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => card.classList.remove('search-highlight'), 2500);
+    }
+}
+
+function filterFeedbacksByStudent(studentId) {
+    const allFeedbacks = getAggregatedFeedbacks();
+    document.querySelectorAll('.feedback-card').forEach((card) => {
+        const feedback = allFeedbacks.find((f) => f.id === card.dataset.feedbackId);
+        card.style.display = feedback && feedback.userId === studentId ? '' : 'none';
+    });
+
+    const firstVisible = Array.from(document.querySelectorAll('.feedback-card'))
+        .find((card) => card.style.display !== 'none');
+    if (firstVisible) {
+        firstVisible.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
 // Show notification

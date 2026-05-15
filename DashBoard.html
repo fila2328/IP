@@ -79,9 +79,12 @@
     <main class="main-content">
         <!-- Top Navigation -->
         <header class="top-nav">
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search teachers, subjects...">
+            <div class="search-bar-wrapper">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Search teachers, students, feedback..." autocomplete="off">
+                </div>
+                <div id="searchResultsDropdown" class="search-results-dropdown hidden" role="listbox"></div>
             </div>
             <div class="nav-actions">
                 <button class="nav-btn" id="notificationsBtn">
