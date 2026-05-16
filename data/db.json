@@ -1,0 +1,162 @@
+{
+  "users": [
+    {
+      "id": "admin-001",
+      "name": "System Administrator",
+      "email": "ddu.edu.et",
+      "password": "ddu123",
+      "role": "admin",
+      "department": "Administration",
+      "createdAt": "2026-05-06T00:00:00.000Z",
+      "feedbacks": []
+    },
+    {
+      "id": "1778052127083",
+      "name": "Filimon Atsibeha",
+      "studentId": "DDU1600282",
+      "email": "filimonatsibeha@gmail.com",
+      "department": "computer-science",
+      "password": "blood@0716",
+      "role": "student",
+      "createdAt": "2026-05-06T07:22:07.083Z",
+      "feedbacks": [
+        {
+          "id": "1778183111662",
+          "userId": "1778052127083",
+          "userName": "Filimon Atsibeha",
+          "teacherId": 1,
+          "teacherName": "Gibril",
+          "teacherDepartment": "Computer Science",
+          "teacherSubject": "Data Structures",
+          "rating": 4,
+          "comments": "very good",
+          "recommend": "yes",
+          "submittedAt": "2026-05-07T19:45:11.662Z",
+          "likes": [],
+          "dislikes": []
+        }
+      ]
+    },
+    {
+      "id": "1778185472654",
+      "name": "Mesfn Teklay",
+      "studentId": "DDU1600527",
+      "email": "mesfnteklay@gmail.com",
+      "department": "computer-science",
+      "password": "asdf1234",
+      "role": "student",
+      "createdAt": "2026-05-07T20:24:32.654Z",
+      "feedbacks": [
+        {
+          "id": "1778185524972",
+          "userId": "1778185472654",
+          "userName": "Mesfn Teklay",
+          "teacherId": 4,
+          "teacherName": "Abdulmejid",
+          "teacherDepartment": "Computer Science",
+          "teacherSubject": "Graphics",
+          "rating": 4,
+          "comments": "Nice",
+          "recommend": "yes",
+          "submittedAt": "2026-05-07T20:25:24.972Z",
+          "likes": [],
+          "dislikes": []
+        }
+      ]
+    }
+  ],
+  "teachers": [
+    {
+      "id": 1,
+      "name": "Gibril",
+      "department": "Computer Science",
+      "subject": "Data Structures",
+      "rating": 4,
+      "feedbackCount": 1,
+      "avatar": "G",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "name": "Tadesse",
+      "department": "IT",
+      "subject": "IP 2",
+      "rating": 4.8,
+      "feedbackCount": 0,
+      "avatar": "T",
+      "status": "completed"
+    },
+    {
+      "id": 3,
+      "name": "Mulugeta",
+      "department": "Software",
+      "subject": "Advanced java",
+      "rating": 4.2,
+      "feedbackCount": 0,
+      "avatar": "M",
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "name": "Abdulmejid",
+      "department": "Computer Science",
+      "subject": "Graphics",
+      "rating": 4,
+      "feedbackCount": 1,
+      "avatar": "A",
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "name": "Seid",
+      "department": "IT",
+      "subject": "Data Communication",
+      "rating": 4.9,
+      "feedbackCount": 0,
+      "avatar": "S",
+      "status": "completed"
+    },
+    {
+      "id": 6,
+      "name": "Sinodos",
+      "department": "Software",
+      "subject": "C++",
+      "rating": 4.3,
+      "feedbackCount": 0,
+      "avatar": "S",
+      "status": "pending"
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": "1778183111662",
+      "userId": "1778052127083",
+      "userName": "Filimon Atsibeha",
+      "teacherId": 1,
+      "teacherName": "Gibril",
+      "teacherDepartment": "Computer Science",
+      "teacherSubject": "Data Structures",
+      "rating": 4,
+      "comments": "very good",
+      "recommend": "yes",
+      "submittedAt": "2026-05-07T19:45:11.662Z",
+      "likes": [],
+      "dislikes": []
+    },
+    {
+      "id": "1778185524972",
+      "userId": "1778185472654",
+      "userName": "Mesfn Teklay",
+      "teacherId": 4,
+      "teacherName": "Abdulmejid",
+      "teacherDepartment": "Computer Science",
+      "teacherSubject": "Graphics",
+      "rating": 4,
+      "comments": "Nice",
+      "recommend": "yes",
+      "submittedAt": "2026-05-07T20:25:24.972Z",
+      "likes": [],
+      "dislikes": []
+    }
+  ]
+}

@@ -179,8 +179,14 @@ function setupStudentInterface() {
 
 // Update dashboard statistics with realistic values
 function updateDashboardStats() {
-    // Total Teachers
-    const totalTeachers = teachers.length;
+    // Total Teachers - Filter by department for students
+    let departmentTeachers = [...teachers];
+    if (currentUser && currentUser.role !== 'admin') {
+        const userDepartment = formatDepartment(currentUser.department);
+        departmentTeachers = teachers.filter(teacher => teacher.department === userDepartment);
+    }
+    
+    const totalTeachers = departmentTeachers.length;
     const totalTeachersElement = document.getElementById('totalTeachersValue');
     if (totalTeachersElement) {
         totalTeachersElement.textContent = totalTeachers;
