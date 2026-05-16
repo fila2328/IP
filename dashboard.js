@@ -122,6 +122,15 @@ async function initializeDashboard() {
     } catch (error) {
         console.warn('Could not load teachers from backend:', error.message);
     }
+
+    try {
+        const departments = await apiGet('/api/departments');
+        if (typeof updateDepartmentDropdowns === 'function') {
+            updateDepartmentDropdowns(departments);
+        }
+    } catch (error) {
+        console.warn('Could not load departments from backend:', error.message);
+    }
     
     // Check if user is admin
     const isAdmin = currentUser && currentUser.role === 'admin';
@@ -265,6 +274,9 @@ function initializeEventListeners() {
     document.getElementById('adminTotalFeedbacksCard')?.addEventListener('click', () => switchPage('manage-feedback'));
     document.getElementById('adminTotalStudentsCard')?.addEventListener('click', () => switchPage('manage-students'));
     
+    // Department listeners
+    document.getElementById('submitAddDeptBtn')?.addEventListener('click', handleAddDepartment);
+    
     // Close add teacher modal on outside click
     const addTeacherModal = document.getElementById('addTeacherModal');
     if (addTeacherModal) {
@@ -284,6 +296,128 @@ function initializeEventListeners() {
             }
         });
     }
+}
+
+// Load admin departments
+async function loadAdminDepartments() {
+    const adminDepartmentsGrid = document.getElementById('adminDepartmentsGrid');
+    if (!adminDepartmentsGrid) return;
+    
+    try {
+        const departments = await apiGet('/api/departments');
+        adminDepartmentsGrid.innerHTML = '';
+        
+        if (departments.length === 0) {
+            adminDepartmentsGrid.innerHTML = '<p>No departments found.</p>';
+            return;
+        }
+        
+        departments.forEach(dept => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.style.display = 'flex';
+            card.style.justifyContent = 'space-between';
+            card.style.alignItems = 'center';
+            card.style.padding = '15px 20px';
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="stat-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <span style="font-weight: 600; color: #333;">${dept}</span>
+                </div>
+                <button class="btn-danger" onclick="handleDeleteDepartment('${dept}')" style="padding: 8px 12px; border-radius: 6px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            adminDepartmentsGrid.appendChild(card);
+        });
+        
+        // Also update all department dropdowns
+        updateDepartmentDropdowns(departments);
+        
+    } catch (error) {
+        console.error('Error loading departments:', error);
+    }
+}
+
+// Handle add department
+async function handleAddDepartment() {
+    const nameInput = document.getElementById('newDeptName');
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        showNotification('Please enter a department name', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/departments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'Failed to add department');
+        }
+        
+        nameInput.value = '';
+        showNotification('Department added successfully', 'success');
+        loadAdminDepartments();
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+// Handle delete department
+async function handleDeleteDepartment(name) {
+    if (!confirm(`Are you sure you want to delete the "${name}" department?`)) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/departments/${encodeURIComponent(name)}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete department');
+        
+        showNotification('Department deleted successfully', 'success');
+        loadAdminDepartments();
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+// Update all department dropdowns across the dashboard
+function updateDepartmentDropdowns(departments) {
+    const dropdownIds = ['departmentFilter', 'teacherDepartment', 'editTeacherDepartment'];
+    
+    dropdownIds.forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        
+        // Save current value
+        const currentValue = select.value;
+        
+        // Clear except first option if it's a filter or prompt
+        const firstOption = select.options[0];
+        select.innerHTML = '';
+        select.appendChild(firstOption);
+        
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            select.appendChild(option);
+        });
+        
+        // Restore value if it still exists
+        if (Array.from(select.options).some(o => o.value === currentValue)) {
+            select.value = currentValue;
+        }
+    });
 }
 
 // Switch between pages
@@ -324,6 +458,8 @@ function switchPage(page) {
         loadAdminFeedbacks();
     } else if (page === 'manage-students') {
         loadAdminStudents();
+    } else if (page === 'manage-departments') {
+        loadAdminDepartments();
     }
 }
 
@@ -935,106 +1071,66 @@ function createFeedbackCard(feedback) {
 }
 
 // Handle feedback like
-function handleFeedbackLike(feedbackId) {
-    const allFeedbacks = JSON.parse(localStorage.getItem('allFeedbacks')) || [];
-    const feedbackIndex = allFeedbacks.findIndex(f => f.id === feedbackId);
-    
-    if (feedbackIndex === -1) return;
-    
-    const feedback = allFeedbacks[feedbackIndex];
-    const likes = feedback.likes || [];
-    const dislikes = feedback.dislikes || [];
-    const userId = currentUser.id;
-    
-    // Remove from dislikes if exists
-    const dislikeIndex = dislikes.indexOf(userId);
-    if (dislikeIndex > -1) {
-        dislikes.splice(dislikeIndex, 1);
-    }
-    
-    // Toggle like
-    const likeIndex = likes.indexOf(userId);
-    if (likeIndex > -1) {
-        likes.splice(likeIndex, 1);
-    } else {
-        likes.push(userId);
-    }
-    
-    feedback.likes = likes;
-    feedback.dislikes = dislikes;
-    
-    // Update localStorage
-    allFeedbacks[feedbackIndex] = feedback;
-    localStorage.setItem('allFeedbacks', JSON.stringify(allFeedbacks));
-    
-    // Reload feedbacks
-    loadAllFeedbacks();
-    
-    // Update user's feedback in their own data if it's their feedback
-    if (feedback.userId === currentUser.id) {
-        const users = JSON.parse(localStorage.getItem('schoolUsers')) || [];
-        const userIndex = users.findIndex(u => u.id === currentUser.id);
-        if (userIndex !== -1) {
-            const userFeedbackIndex = users[userIndex].feedbacks.findIndex(f => f.id === feedbackId);
-            if (userFeedbackIndex > -1) {
-                users[userIndex].feedbacks[userFeedbackIndex] = feedback;
-                localStorage.setItem('schoolUsers', JSON.stringify(users));
-                currentUser = users[userIndex];
-                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
-            }
+async function handleFeedbackLike(feedbackId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/feedbacks/${feedbackId}/like`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id })
+        });
+
+        if (!response.ok) throw new Error('Failed to like feedback');
+
+        const updatedFeedback = await response.json();
+        
+        // Update local data
+        const allFeedbacks = JSON.parse(localStorage.getItem('allFeedbacks')) || [];
+        const index = allFeedbacks.findIndex(f => f.id === feedbackId);
+        if (index > -1) {
+            allFeedbacks[index] = updatedFeedback;
+            localStorage.setItem('allFeedbacks', JSON.stringify(allFeedbacks));
         }
+
+        // Reload UI
+        loadAllFeedbacks();
+        if (document.getElementById('profilePage').classList.contains('active')) {
+            loadProfilePage();
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification(error.message, 'error');
     }
 }
 
 // Handle feedback dislike
-function handleFeedbackDislike(feedbackId) {
-    const allFeedbacks = JSON.parse(localStorage.getItem('allFeedbacks')) || [];
-    const feedbackIndex = allFeedbacks.findIndex(f => f.id === feedbackId);
-    
-    if (feedbackIndex === -1) return;
-    
-    const feedback = allFeedbacks[feedbackIndex];
-    const likes = feedback.likes || [];
-    const dislikes = feedback.dislikes || [];
-    const userId = currentUser.id;
-    
-    // Remove from likes if exists
-    const likeIndex = likes.indexOf(userId);
-    if (likeIndex > -1) {
-        likes.splice(likeIndex, 1);
-    }
-    
-    // Toggle dislike
-    const dislikeIndex = dislikes.indexOf(userId);
-    if (dislikeIndex > -1) {
-        dislikes.splice(dislikeIndex, 1);
-    } else {
-        dislikes.push(userId);
-    }
-    
-    feedback.likes = likes;
-    feedback.dislikes = dislikes;
-    
-    // Update localStorage
-    allFeedbacks[feedbackIndex] = feedback;
-    localStorage.setItem('allFeedbacks', JSON.stringify(allFeedbacks));
-    
-    // Reload feedbacks
-    loadAllFeedbacks();
-    
-    // Update user's feedback in their own data if it's their feedback
-    if (feedback.userId === currentUser.id) {
-        const users = JSON.parse(localStorage.getItem('schoolUsers')) || [];
-        const userIndex = users.findIndex(u => u.id === currentUser.id);
-        if (userIndex !== -1) {
-            const userFeedbackIndex = users[userIndex].feedbacks.findIndex(f => f.id === feedbackId);
-            if (userFeedbackIndex > -1) {
-                users[userIndex].feedbacks[userFeedbackIndex] = feedback;
-                localStorage.setItem('schoolUsers', JSON.stringify(users));
-                currentUser = users[userIndex];
-                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
-            }
+async function handleFeedbackDislike(feedbackId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/feedbacks/${feedbackId}/dislike`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id })
+        });
+
+        if (!response.ok) throw new Error('Failed to dislike feedback');
+
+        const updatedFeedback = await response.json();
+        
+        // Update local data
+        const allFeedbacks = JSON.parse(localStorage.getItem('allFeedbacks')) || [];
+        const index = allFeedbacks.findIndex(f => f.id === feedbackId);
+        if (index > -1) {
+            allFeedbacks[index] = updatedFeedback;
+            localStorage.setItem('allFeedbacks', JSON.stringify(allFeedbacks));
         }
+
+        // Reload UI
+        loadAllFeedbacks();
+        if (document.getElementById('profilePage').classList.contains('active')) {
+            loadProfilePage();
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification(error.message, 'error');
     }
 }
 

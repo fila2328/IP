@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.classList.add('hidden');
         initializeScreenContent();
         initializeEventListeners();
+        loadDepartments();
     }, 2000);
 });
 
@@ -510,3 +511,27 @@ window.addEventListener('load', function() {
         document.getElementById('remember').checked = true;
     }
 });
+
+// Load departments for registration form
+async function loadDepartments() {
+    const departmentSelect = document.getElementById('department');
+    if (!departmentSelect) return;
+    
+    try {
+        const departments = await apiRequest('/api/departments');
+        
+        // Clear except first option
+        const firstOption = departmentSelect.options[0];
+        departmentSelect.innerHTML = '';
+        departmentSelect.appendChild(firstOption);
+        
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            departmentSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading departments:', error);
+    }
+}

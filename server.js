@@ -165,6 +165,60 @@ app.get('/api/feedbacks', async (req, res) => {
   res.json(db.feedbacks);
 });
 
+app.post('/api/feedbacks/:id/like', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ message: 'User ID is required' });
+
+  const db = await readDB();
+  const feedback = db.feedbacks.find(f => f.id === id);
+  if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+  if (!feedback.likes) feedback.likes = [];
+  if (!feedback.dislikes) feedback.dislikes = [];
+
+  // Remove from dislikes if present
+  feedback.dislikes = feedback.dislikes.filter(uid => uid !== userId);
+
+  // Toggle like
+  const index = feedback.likes.indexOf(userId);
+  if (index > -1) {
+    feedback.likes.splice(index, 1);
+  } else {
+    feedback.likes.push(userId);
+  }
+
+  await writeDB(db);
+  res.json(feedback);
+});
+
+app.post('/api/feedbacks/:id/dislike', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ message: 'User ID is required' });
+
+  const db = await readDB();
+  const feedback = db.feedbacks.find(f => f.id === id);
+  if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+  if (!feedback.likes) feedback.likes = [];
+  if (!feedback.dislikes) feedback.dislikes = [];
+
+  // Remove from likes if present
+  feedback.likes = feedback.likes.filter(uid => uid !== userId);
+
+  // Toggle dislike
+  const index = feedback.dislikes.indexOf(userId);
+  if (index > -1) {
+    feedback.dislikes.splice(index, 1);
+  } else {
+    feedback.dislikes.push(userId);
+  }
+
+  await writeDB(db);
+  res.json(feedback);
+});
+
 app.delete('/api/feedbacks/:id', async (req, res) => {
   const { id } = req.params;
   const db = await readDB();
@@ -287,16 +341,60 @@ app.delete('/api/students/:id', async (req, res) => {
   res.json({ message: 'Student deleted successfully.' });
 });
 
+app.get('/api/departments', async (req, res) => {
+  const db = await readDB();
+  res.json(db.departments || []);
+});
+
+app.post('/api/departments', async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ message: 'Department name is required' });
+
+  const db = await readDB();
+  if (!db.departments) db.departments = [];
+  
+  if (db.departments.some(d => d.toLowerCase() === name.toLowerCase())) {
+    return res.status(409).json({ message: 'Department already exists' });
+  }
+
+  db.departments.push(name);
+  await writeDB(db);
+  res.status(201).json(name);
+});
+
+app.delete('/api/departments/:name', async (req, res) => {
+  const { name } = req.params;
+  const db = await readDB();
+  if (!db.departments) return res.status(404).json({ message: 'Department not found' });
+
+  const index = db.departments.findIndex(d => d.toLowerCase() === name.toLowerCase());
+  if (index === -1) return res.status(404).json({ message: 'Department not found' });
+
+  db.departments.splice(index, 1);
+  await writeDB(db);
+  res.json({ message: 'Department deleted successfully' });
+});
+
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'index.html'));
 });
 
 async function startServer() {
   const db = await readDB().catch(async () => {
-    const initialData = { users: [createAdminUser()], teachers: [], feedbacks: [] };
+    const initialData = { 
+      users: [createAdminUser()], 
+      teachers: [], 
+      feedbacks: [], 
+      departments: ['Computer Science', 'Engineering', 'Software', 'IT', 'Arts & Humanities'] 
+    };
     await writeDB(initialData);
     return initialData;
   });
+
+  if (!db.departments) {
+    db.departments = ['Computer Science', 'Engineering', 'Software', 'IT', 'Arts & Humanities'];
+    await writeDB(db);
+  }
 
   await ensureAdminUser(db);
 

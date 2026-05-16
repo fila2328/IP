@@ -158,5 +158,13 @@
       "likes": [],
       "dislikes": []
     }
+  ],
+  "departments": [
+    "Computer Science",
+    "Engineering",
+    "Software",
+    "IT",
+    "Arts & Humanities",
+    "Marketing & Management"
   ]
 }
