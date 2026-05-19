@@ -981,6 +981,7 @@ function createFeedbackCard(feedback) {
     const hasLiked = likes.includes(currentUser.id);
     const hasDisliked = dislikes.includes(currentUser.id);
     const isOwnFeedback = feedback.userId === currentUser.id;
+    const displayUserName = (currentUser && currentUser.role === 'admin' || isOwnFeedback) ? feedback.userName : 'Anonymous';
     
     const submittedDate = new Date(feedback.submittedAt);
     const dateString = submittedDate.toLocaleDateString('en-US', {
@@ -1000,7 +1001,7 @@ function createFeedbackCard(feedback) {
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="feedback-user-info">
-                    <h4>${feedback.userName} ${isOwnFeedback ? '<span class="you-badge">(You)</span>' : ''}</h4>
+                    <h4>${displayUserName} ${isOwnFeedback ? '<span class="you-badge">(You)</span>' : ''}</h4>
                     <p>${dateString} at ${timeString}</p>
                 </div>
             </div>
