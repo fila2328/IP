@@ -15,7 +15,7 @@ const DB_PATH = path.join(__dirname, 'data', 'db.json');
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Initialize Database Service
 const dbService = new DatabaseService(DB_PATH);
@@ -59,7 +59,7 @@ app.delete('/api/departments/:name', (req, res) => departmentController.deleteDe
 
 // Fallback Route for frontend
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'index.html'));
+  res.status(404).sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
 // Start Server
