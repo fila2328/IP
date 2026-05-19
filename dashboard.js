@@ -171,6 +171,9 @@ function setupAdminInterface() {
     // Update user info display
     document.getElementById('userName').textContent = currentUser.name || 'Administrator';
     document.getElementById('userDepartment').textContent = 'Administrator';
+    
+    // Initialize search for admin as well
+    initializeStudentSearch();
 }
 
 // Setup student interface
@@ -2022,6 +2025,9 @@ function getStudentsFromStorage() {
 }
 
 function getSearchableTeachers() {
+    if (currentUser && currentUser.role === 'admin') {
+        return teachers;
+    }
     const userDepartment = formatDepartment(currentUser.department);
     return teachers.filter((teacher) => teacher.department === userDepartment);
 }
@@ -2141,18 +2147,28 @@ function handleSearchResultSelect(type, id) {
     hideSearchResults();
     if (searchInput) searchInput.value = '';
 
+    const isAdmin = currentUser && currentUser.role === 'admin';
+
     if (type === 'teacher') {
         const teacher = teachers.find((t) => String(t.id) === String(id));
         if (teacher) {
-            switchPage('teachers');
-            setTimeout(() => openTeacherModal(teacher), 150);
+            switchPage(isAdmin ? 'manage-teachers' : 'teachers');
+            setTimeout(() => {
+                if (isAdmin) {
+                    openEditTeacherModal(teacher);
+                } else {
+                    openTeacherModal(teacher);
+                }
+            }, 150);
         }
     } else if (type === 'feedback') {
-        switchPage('feedback');
+        switchPage(isAdmin ? 'manage-feedback' : 'feedback');
         setTimeout(() => highlightFeedbackCard(id), 150);
     } else if (type === 'student') {
-        switchPage('feedback');
-        setTimeout(() => filterFeedbacksByStudent(id), 150);
+        switchPage(isAdmin ? 'manage-students' : 'feedback');
+        if (!isAdmin) {
+            setTimeout(() => filterFeedbacksByStudent(id), 150);
+        }
     }
 }
 
