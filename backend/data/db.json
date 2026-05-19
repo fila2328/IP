@@ -85,6 +85,17 @@
       "role": "student",
       "createdAt": "2026-05-19T18:59:20.651Z",
       "feedbacks": []
+    },
+    {
+      "id": "1779222886496",
+      "name": "zakariye",
+      "studentId": "ddu1601285",
+      "email": "zakariy@gmail.com",
+      "department": "Computer Science",
+      "password": "zaki123",
+      "role": "student",
+      "createdAt": "2026-05-19T20:34:46.496Z",
+      "feedbacks": []
     }
   ],
   "teachers": [
