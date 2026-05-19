@@ -63,6 +63,28 @@
           "dislikes": []
         }
       ]
+    },
+    {
+      "id": "1779217004061",
+      "name": "Blen Teshome",
+      "studentId": "RMD0622",
+      "email": "blenteshomenani@gmail.com",
+      "department": "Computer Science",
+      "password": "43344334",
+      "role": "student",
+      "createdAt": "2026-05-19T18:56:44.061Z",
+      "feedbacks": []
+    },
+    {
+      "id": "1779217160651",
+      "name": "Edlawit Mulugeta",
+      "studentId": "RMD0790",
+      "email": "edlmule@gmail.com",
+      "department": "Computer Science",
+      "password": "12345678",
+      "role": "student",
+      "createdAt": "2026-05-19T18:59:20.651Z",
+      "feedbacks": []
     }
   ],
   "teachers": [
