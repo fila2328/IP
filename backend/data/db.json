@@ -96,6 +96,17 @@
       "role": "student",
       "createdAt": "2026-05-19T20:34:46.496Z",
       "feedbacks": []
+    },
+    {
+      "id": "1779255357166",
+      "name": "Natnael Haile",
+      "studentId": "RMD1934",
+      "email": "natnael@gmail.com",
+      "department": "Arts & Humanities",
+      "password": "12345678",
+      "role": "student",
+      "createdAt": "2026-05-20T05:35:57.167Z",
+      "feedbacks": []
     }
   ],
   "teachers": [
@@ -112,7 +123,7 @@
     {
       "id": 2,
       "name": "Tadesse",
-      "department": "Computer Science",
+      "department": "IT",
       "subject": "IP 2",
       "rating": 4.8,
       "feedbackCount": 0,
@@ -157,6 +168,16 @@
       "rating": 4.3,
       "feedbackCount": 0,
       "avatar": "S",
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "name": "Asnak",
+      "department": "Computer Science",
+      "subject": "AI",
+      "rating": 4,
+      "feedbackCount": 0,
+      "avatar": "A",
       "status": "pending"
     }
   ],
