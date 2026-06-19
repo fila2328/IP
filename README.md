@@ -30,7 +30,11 @@ A comprehensive, responsive, and secure **School Feedback System** designed to f
 
 ## 🖥️ Screenshot Preview
 
-![Dashboard Screenshot](assets/Screenshot%202026-06-19%20214341.png)
+<div align="center">
+    <img src="assets/Screenshot%202026-06-19%20214341.png" alt="Dashboard 214341" width="600" />
+    <img src="assets/Screenshot%202026-06-19%20214434.png" alt="Dashboard 214434" width="600" />
+    <img src="assets/Screenshot%202026-06-19%20210517.png" alt="Dashboard 210517" width="600" />
+</div>
 
 A clean and modern interface preview showing the student/admin dashboard, quick metrics, and feedback controls.
 
