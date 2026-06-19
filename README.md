@@ -1,6 +1,6 @@
 # 🎓 School Feedback System
 
-![School Feedback Banner](assets/dashboard-screenshot.svg)
+![School Feedback Banner](assets/dashboard-screenshot.png)
 
 ![School Feedback System](https://img.shields.io/badge/Status-Active-success) ![Version](https://img.shields.io/badge/Version-1.0.0-blue) ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
