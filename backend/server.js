@@ -13,7 +13,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'data', 'db.json');
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests from localhost (any port) and file:// protocol
+    if (!origin || origin.includes('localhost') || origin === 'file://') {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all during development
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 

@@ -1,8 +1,12 @@
 # 🎓 School Feedback System
 
+![School Feedback Website](https://img.icons8.com/clouds/800/000000/feedback.png)
+
 ![School Feedback System](https://img.shields.io/badge/Status-Active-success) ![Version](https://img.shields.io/badge/Version-1.0.0-blue) ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-A comprehensive, responsive, and secure **School Feedback System** designed to facilitate seamless communication between students and the administration. This platform allows students to provide anonymous, constructive feedback and evaluate teachers, while empowering administrators with robust management tools.
+A comprehensive, responsive, and secure **School Feedback System** designed to facilitate seamless communication between students and school administrators.
+
+> Empower students with anonymous teacher feedback, help administrators manage departments and users, and deliver a modern education experience with a polished dashboard.
 
 ---
 
@@ -24,7 +28,15 @@ A comprehensive, responsive, and secure **School Feedback System** designed to f
 
 ---
 
-## 🛠️ Technology Stack
+## � Screenshot Preview
+
+![Dashboard Screenshot](assets/dashboard-screenshot.svg)
+
+A clean and modern interface preview showing the student/admin dashboard, quick metrics, and feedback controls.
+
+---
+
+## �🛠️ Technology Stack
 
 **Frontend:**
 *   HTML5 (Semantic & Accessible)
