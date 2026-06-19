@@ -1,6 +1,6 @@
 # 🎓 School Feedback System
 
-![School Feedback Website](https://img.icons8.com/clouds/800/000000/feedback.png)
+![School Feedback Banner](https://source.unsplash.com/1200x400/?school,feedback)
 
 ![School Feedback System](https://img.shields.io/badge/Status-Active-success) ![Version](https://img.shields.io/badge/Version-1.0.0-blue) ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -28,9 +28,9 @@ A comprehensive, responsive, and secure **School Feedback System** designed to f
 
 ---
 
-## � Screenshot Preview
+## 🖥️ Screenshot Preview
 
-![Dashboard Screenshot](assets/dashboard-screenshot.svg)
+![Dashboard Screenshot](assets/Screenshot 2026-06-19 214341.png)
 
 A clean and modern interface preview showing the student/admin dashboard, quick metrics, and feedback controls.
 
